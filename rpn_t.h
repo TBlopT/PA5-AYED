@@ -36,45 +36,97 @@ template <class T> class rpn_t {
 
 
 // operaciones
-template<class T> const int rpn_t<T>::evaluate(queue_l_t<char>& q) {
-  while (!q.empty()) 	{
+template<class T>
+const int rpn_t<T>::evaluate(queue_l_t<char>& q) {
+  while (!q.empty()) {
     char c = q.front();
-    
     q.pop();
     std::cout << "Sacamos de la cola un carácter: " << c;
 
-    if (isdigit(c)) {
-      int i = c - '0';
-      // poner código
-      std::cout << " (es un dígito) " << std::endl
-		<< "   Lo metemos en la pila..." << std::endl;
+    if (std::isdigit(c)) {
+      // -- Dígito: lo metemos directo --
+      int valor = c - '0';
+      stack_.push(valor);
+      std::cout << " (es un dígito)" << std::endl
+                << "   Lo metemos en la pila..." << std::endl;
     } else {
+      // -- Operador: distinguimos unarios y binarios --
       std::cout << " (es un operador)" << std::endl;
-      // poner código
+      int resultado = 0;
+
+      if (c == 'r' || c == 'l' || c == 'c') {
+        // Operador unario
+        if (stack_.empty()) {
+          std::cerr << "   Error: pila vacía para operador unario" << std::endl;
+          return -1;
+        }
+        int op = stack_.top();
+        stack_.pop();
+
+        switch (c) {
+          case 'r':  // raíz cuadrada
+            resultado = static_cast<int>(std::sqrt(op));
+            break;
+          case 'l':  // log base 2
+            resultado = static_cast<int>(std::log2(op));
+            break;
+          case 'c':  // elevación al cuadrado
+            resultado = op * op;
+            break;
+        }
+      } else {
+        // Operador binario
+        if (stack_.empty()) {
+          std::cerr << "   Error: faltan operandos en la pila" << std::endl;
+          return -1;
+        }
+        int b = stack_.top();
+        stack_.pop();
+
+        if (stack_.empty()) {
+          std::cerr << "   Error: faltan operandos en la pila" << std::endl;
+          return -1;
+        }
+        int a = stack_.top();
+        stack_.pop();
+
+        switch (c) {
+          case '+':
+            resultado = a + b;
+            break;
+          case '-':
+            resultado = a - b;
+            break;
+          case '*':
+            resultado = a * b;
+            break;
+          case '/':
+            resultado = a / b;
+            break;
+          case '^':
+            resultado = static_cast<int>(std::pow(a, b));
+            break;
+          default:
+            std::cerr << "   Operador no soportado: " << c << std::endl;
+            return -1;
+        }
+      }
+
+      std::cout << "   Metemos en la pila el resultado: " << resultado << std::endl;
+      stack_.push(resultado);
     }
   }
-  // poner código
-}
 
-template<class T> void rpn_t<T>::operate_(const char c) {
-  assert(c == '+' || c == '-' || c == '*' || c == '/');
-
-  // poner código
-  std::cout << "   Sacamos de la pila un operando: " << std::endl;
-  
-  // poner código
-  std::cout << "   Sacamos de la pila otro operando: " << std::endl;
-  
-  switch (c) {
-    case '+':
-      // poner código
-      break;
-    // poner código resto de operadores
+  // Al final, sacamos el resultado de la pila
+  if (!stack_.empty()) {
+    int final_result = stack_.top();
+    stack_.pop();
+    std::cout << "Resultado: " << final_result << std::endl;
+    return final_result;
+  } else {
+    std::cerr << "   Error: pila vacía al final" << std::endl;
+    return -1;
   }
-
-  // poner código
-  std::cout << "   Metemos en la pila el resultado: " << std::endl;
 }
 
- 
-#endif  // RPNT_H_
+#endif 
